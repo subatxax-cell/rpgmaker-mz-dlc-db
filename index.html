@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RPG Maker MZ DLC 数据库</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
+</head>
+<body>
+<div class="app-container">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <span class="logo-icon">🎮</span>
+      <span class="logo">RPGMZ DLC 数据库</span>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>📂 分类筛选</h3>
+      <div class="filter-group" id="category-filters"></div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>⭐ 推荐度</h3>
+      <div class="rating-filter" id="rating-filter">
+        <button class="star-btn" data-rating="4">★★★★↑</button>
+        <button class="star-btn" data-rating="3">★★★↑</button>
+        <button class="star-btn active" data-rating="0">全部</button>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>💴 价格区间 (CN¥)</h3>
+      <div class="price-slider">
+        <input type="range" id="price-min" min="0" max="500" value="0" step="5">
+        <input type="range" id="price-max" min="0" max="500" value="500" step="5">
+        <div class="price-labels">
+          <span id="price-min-label">¥0</span>
+          <span id="price-max-label">¥500+</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>🏷️ 我的标记</h3>
+      <div class="tag-toggle">
+        <label><input type="checkbox" id="filter-owned"> ✅ 已拥有</label>
+        <label><input type="checkbox" id="filter-wanted"> 🔖 想买</label>
+        <label><input type="checkbox" id="filter-reviewed"> 📝 已评分</label>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Top Bar -->
+    <div class="topbar">
+      <button class="btn btn-icon mobile-sidebar-toggle" id="menu-btn" title="菜单">☰</button>
+      <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-input" placeholder="搜索标题、描述、标签... (Ctrl+K)">
+      </div>
+      <span class="result-count" id="result-count">0 个结果</span>
+      <div class="view-toggle">
+        <button class="btn active" data-view="card" title="卡片视图">▦</button>
+        <button class="btn" data-view="table" title="表格视图">☰</button>
+      </div>
+      <select class="sort-select" id="sort-select">
+        <option value="recommendation-desc" selected>推荐度高优先</option>
+        <option value="recommendation-asc">推荐度低优先</option>
+        <option value="price-asc">价格 ↓</option>
+        <option value="price-desc">价格 ↑</option>
+        <option value="name-asc">名称 A-Z</option>
+        <option value="name-desc">名称 Z-A</option>
+        <option value="steam_rating-desc">Steam 好评 ↓</option>
+      </select>
+      <button class="btn btn-icon" id="theme-toggle" title="暗色模式">🌙</button>
+      <button class="btn" id="export-btn" title="导出数据">📤</button>
+      <button class="btn" id="import-btn" title="导入数据">📥</button>
+    </div>
+
+    <!-- Card Grid -->
+    <div class="content-area" id="content-area">
+      <div class="card-grid active" id="card-grid"></div>
+      <div class="table-view" id="table-view">
+        <table>
+          <thead>
+            <tr>
+              <th data-sort="title_en">名称</th>
+              <th data-sort="category">分类</th>
+              <th data-sort="rating">推荐度</th>
+              <th data-sort="price_cny">现价</th>
+              <th data-sort="price_cny_lowest">史低</th>
+              <th data-sort="steam_rating">Steam 好评</th>
+              <th data-sort="theme">主题</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="empty-state" style="display:none;">
+        <div class="empty-icon">📭</div>
+        <h3>没有找到匹配的 DLC</h3>
+        <p>尝试调整筛选条件或搜索关键词</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <div>
+        <span class="modal-category" id="modal-category"></span>
+        <h2 id="modal-title"></h2>
+        <div style="margin-top:4px;font-size:13px;color:var(--text-secondary)" id="modal-title-zh"></div>
+      </div>
+      <button class="modal-close" id="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Carousel: screenshots, preview images, video -->
+      <div class="carousel" id="modal-carousel">
+        <div class="carousel-main" id="carousel-main">
+          <div class="carousel-placeholder" id="carousel-placeholder">
+            <span class="icon">🖼️</span>
+            <span class="text">加载预览中...</span>
+          </div>
+        </div>
+        <button class="carousel-arrow prev" id="carousel-prev" title="上一张">◀</button>
+        <button class="carousel-arrow next" id="carousel-next" title="下一张">▶</button>
+        <div class="carousel-dots" id="carousel-dots"></div>
+        <div class="carousel-counter" id="carousel-counter"></div>
+        <button class="carousel-fs-btn" id="carousel-fs-btn" title="全屏">⛶ 全屏</button>
+      </div>
+      <div class="carousel-thumbs" id="carousel-thumbs"></div>
+
+      <!-- Video embed (alternative to carousel) -->
+      <div class="modal-section" id="modal-video-section" style="display:none;">
+        <h4>🎬 预告片</h4>
+        <div class="modal-video" id="modal-video"></div>
+      </div>
+
+      <div class="modal-meta">
+        <div class="meta-item"><span class="label">综合推荐分</span><span class="value" id="modal-rating"></span></div>
+        <div class="meta-item"><span class="label">Steam 好评率</span><span class="value" id="modal-steam-rating"></span></div>
+        <div class="meta-item"><span class="label">Steam 评价数</span><span class="value" id="modal-review-count"></span></div>
+        <div class="meta-item"><span class="label">国区现价</span><span class="value" id="modal-price"></span></div>
+        <div class="meta-item"><span class="label">历史最低</span><span class="value" id="modal-price-lowest"></span></div>
+        <div class="meta-item"><span class="label">主题风格</span><span class="value" id="modal-theme"></span></div>
+        <div class="meta-item"><span class="label">子分类</span><span class="value" id="modal-subcategory"></span></div>
+      </div>
+
+      <div class="modal-section">
+        <h4>⭐ 综合推荐分来源</h4>
+        <p id="modal-recommendation-source"></p>
+      </div>
+
+      <div class="modal-section">
+        <h4>📝 详情</h4>
+        <div class="description-language">English</div>
+        <p class="modal-description" id="modal-description-en"></p>
+        <div class="description-language">中文</div>
+        <p class="modal-description" id="modal-description-zh"></p>
+      </div>
+
+      <div class="modal-section">
+        <h4>💬 社区评价</h4>
+        <p id="modal-review"></p>
+      </div>
+
+      <div class="modal-section" id="modal-tags-section">
+        <h4>🏷️ 标签</h4>
+        <div class="modal-tags" id="modal-tags"></div>
+      </div>
+
+      <div class="modal-section" id="modal-features-section" style="display:none;">
+        <h4>🎮 玩法特性</h4>
+        <div class="modal-tags" id="modal-features"></div>
+      </div>
+
+      <div class="modal-section">
+        <h4>🔗 链接</h4>
+        <a id="modal-steam-link" target="_blank" rel="noopener">在 Steam 上查看 →</a>
+      </div>
+
+      <!-- Personal Section -->
+      <div class="modal-personal">
+        <h4 style="font-size:12px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-tertiary);margin-bottom:4px;">📌 个人标记</h4>
+        <div class="personal-row">
+          <label>状态</label>
+          <div class="toggle-btns">
+            <button class="toggle-btn" id="modal-toggle-owned">✅ 已拥有</button>
+            <button class="toggle-btn" id="modal-toggle-wanted">🔖 想买</button>
+          </div>
+        </div>
+        <div class="personal-row">
+          <label>我的评分</label>
+          <div class="personal-stars" id="modal-personal-stars">
+            <button data-star="1">☆</button><button data-star="2">☆</button><button data-star="3">☆</button><button data-star="4">☆</button><button data-star="5">☆</button>
+          </div>
+        </div>
+        <div class="personal-row">
+          <label>备注</label>
+          <textarea class="personal-notes" id="modal-notes" placeholder="添加个人备注..."></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Fullscreen Image Viewer -->
+<div class="image-viewer-overlay" id="image-viewer-overlay">
+  <button class="image-viewer-close" id="image-viewer-close">✕</button>
+  <img src="" alt="Preview" id="image-viewer-img">
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="js/data.js"></script>
+<script src="data/dlc-catalog.js"></script>
+<script src="data/steam-images.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>
+<script src="js/dlc-sort.js"></script>
+<script src="js/dlc-display.js"></script>
+<script src="js/dlc-filters.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
