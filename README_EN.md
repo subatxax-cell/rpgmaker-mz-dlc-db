@@ -17,15 +17,12 @@ English | [简体中文](README.md)
 
 ## 📽️ Promo Video
 
+<!-- TODO: drag docs/media/promo.mp4 into the GitHub web editor to get a user-attachments video URL for inline playback -->
 <a href="docs/media/promo.mp4">
-  <img src="docs/media/promo-poster.png" alt="RPGMZ DLC Database promo" width="100%">
+  <img src="docs/media/promo-poster.png" alt="RPGMZ DLC Database promo - click to download and watch (~30MB)" width="100%">
 </a>
 
-<video src="docs/media/promo.mp4" controls muted width="100%" poster="docs/media/promo-poster.png">
-  Your viewer doesn't support inline playback — <a href="docs/media/promo.mp4">download it here</a>.
-</video>
-
-*(If the video doesn't play inline, click the image/link above to download it, ~30MB)*
+*(Click the image above to download and watch the full promo video, ~30MB)*
 
 ---
 
