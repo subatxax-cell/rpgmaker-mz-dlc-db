@@ -11,6 +11,8 @@
 [🌐 在线体验](https://subatxax-cell.github.io/rpgmaker-mz-dlc-db/) ·
 [📦 查看源码](https://github.com/subatxax-cell/rpgmaker-mz-dlc-db)
 
+**当前版本：v1.1.0** · [查看更新记录](CHANGELOG.md)
+
 </div>
 
 ---
