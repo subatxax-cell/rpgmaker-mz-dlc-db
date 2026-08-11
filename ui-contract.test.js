@@ -89,3 +89,14 @@ test('project collection sidebar loads its dependencies and composes with existi
   assert.match(app, /window\.dlcFilters\.filterByCategory/);
   assert.match(app, /window\.sortDlcs/);
 });
+
+test('project management provides menus, move controls, detail assignment, and batch assignment', () => {
+  for (const id of ['project-node-menu', 'move-node-dialog', 'move-node-target', 'delete-node-dialog',
+    'modal-project-assign', 'project-picker-overlay', 'project-picker-search', 'project-picker-tree',
+    'project-picker-save', 'batch-mode-btn', 'batch-toolbar', 'batch-selected-count',
+    'batch-assign-btn', 'batch-cancel-btn']) assert.match(index, new RegExp(`id="${id}"`));
+  for (const eventName of ['dragstart', 'dragover', 'drop', 'dragend']) assert.match(app, new RegExp(eventName));
+  assert.match(app, /addAssignments/);
+  assert.match(app, /setAssignments/);
+  assert.match(app, /batch-select-checkbox/);
+});

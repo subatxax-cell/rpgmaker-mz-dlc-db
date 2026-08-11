@@ -138,6 +138,28 @@ a:hover { text-decoration: underline; }
 .project-tree-count { margin-left:auto; opacity:.7; font-size:11px; }
 .project-tree-actions { position:absolute; right:0; top:2px; border:0; background:none; color:var(--text-tertiary); cursor:pointer; padding:4px 7px; border-radius:4px; }
 .project-descendants { display:flex; gap:6px; align-items:center; margin-top:8px; color:var(--text-secondary); font-size:12px; }
+.project-tree-node.dragging { opacity:.45; }
+.project-tree-node.drop-inside > .project-tree-main { outline:2px solid var(--accent); }
+.project-node-menu { position:fixed; z-index:1000; min-width:140px; padding:5px; border:1px solid var(--border); border-radius:8px; background:var(--bg-primary); box-shadow:var(--shadow-hover); }
+.project-node-menu button { display:block; width:100%; padding:7px 10px; border:0; background:none; color:var(--text-primary); text-align:left; cursor:pointer; border-radius:4px; }
+.project-node-menu button:hover { background:var(--bg-hover); }
+.project-dialog { width:min(420px,calc(100% - 32px)); border:1px solid var(--border); border-radius:10px; padding:18px; background:var(--bg-primary); color:var(--text-primary); }
+.project-dialog::backdrop { background:rgba(0,0,0,.5); }
+.project-dialog select { width:100%; margin:14px 0; padding:8px; }
+.dialog-actions { display:flex; align-items:center; justify-content:flex-end; gap:8px; margin-top:14px; }
+.batch-toolbar { padding:8px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:flex-end; gap:8px; background:var(--bg-secondary); }
+.batch-toolbar[hidden] { display:none; }
+.batch-select-checkbox { position:absolute; z-index:3; margin:8px; width:18px; height:18px; }
+tr .batch-select-checkbox { position:static; margin-right:8px; }
+.card.batch-selected, tr.batch-selected { outline:2px solid var(--accent); }
+.project-picker-overlay.active { display:flex; }
+.project-picker-dialog { width:min(520px,calc(100% - 24px)); max-height:80vh; display:flex; flex-direction:column; background:var(--bg-primary); border-radius:12px; padding:16px; }
+.project-picker-header { display:flex; justify-content:space-between; align-items:center; }
+.project-picker-header button { border:0; background:none; color:var(--text-primary); cursor:pointer; }
+#project-picker-search { margin:12px 0; padding:9px; border:1px solid var(--border); border-radius:6px; background:var(--bg-primary); color:var(--text-primary); }
+#project-picker-tree { overflow:auto; min-height:120px; }
+.project-picker-node > label { display:flex; gap:7px; padding:5px 5px 5px calc(5px + (min(var(--tree-depth),6) - 1) * 14px); }
+@media (max-width:768px) { .project-picker-dialog { width:100%; max-height:88vh; margin-top:auto; border-radius:14px 14px 0 0; } .batch-toolbar { flex-wrap:wrap; } }
 
 .filter-group {
   display: flex;

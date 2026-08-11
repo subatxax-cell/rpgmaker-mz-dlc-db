@@ -84,6 +84,13 @@
       <button class="btn btn-icon" id="theme-toggle" title="暗色模式">🌙</button>
       <button class="btn" id="export-btn" title="导出数据">📤</button>
       <button class="btn" id="import-btn" title="导入数据">📥</button>
+      <button class="btn" id="batch-mode-btn">批量选择</button>
+    </div>
+
+    <div class="batch-toolbar" id="batch-toolbar" hidden>
+      <span id="batch-selected-count">已选择 0 项</span>
+      <button class="btn" id="batch-assign-btn">加入项目目录</button>
+      <button class="btn" id="batch-cancel-btn">取消选择</button>
     </div>
 
     <!-- Card Grid -->
@@ -211,8 +218,24 @@
           <label>备注</label>
           <textarea class="personal-notes" id="modal-notes" placeholder="添加个人备注..."></textarea>
         </div>
+        <div class="personal-row"><label>项目目录</label><button class="btn" id="modal-project-assign">📁 加入项目目录</button></div>
       </div>
     </div>
+  </div>
+</div>
+
+<div class="project-node-menu" id="project-node-menu" hidden>
+  <button data-node-action="child">新建子目录</button><button data-node-action="rename">重命名</button>
+  <button data-node-action="move">移动到…</button><button data-node-action="delete">删除</button>
+</div>
+<dialog class="project-dialog" id="move-node-dialog"><form method="dialog"><h3>移动目录</h3><select id="move-node-target"></select><div class="dialog-actions"><button value="cancel">取消</button><button id="move-node-confirm" value="default">移动</button></div></form></dialog>
+<dialog class="project-dialog" id="delete-node-dialog"><form method="dialog"><h3>确认删除</h3><p id="delete-node-summary"></p><div class="dialog-actions"><button value="cancel">取消</button><button id="delete-node-confirm" value="default">删除</button></div></form></dialog>
+<div class="modal-overlay project-picker-overlay" id="project-picker-overlay">
+  <div class="project-picker-dialog" role="dialog" aria-modal="true" aria-label="选择项目目录">
+    <div class="project-picker-header"><h3>选择项目目录</h3><button id="project-picker-close">✕</button></div>
+    <input id="project-picker-search" placeholder="搜索项目或目录">
+    <div id="project-picker-tree"></div>
+    <div class="dialog-actions"><span id="project-picker-count">已选择 0 个目录</span><button class="btn" id="project-picker-save">保存归类</button></div>
   </div>
 </div>
 

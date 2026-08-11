@@ -20,6 +20,12 @@ const state = {
   personalDocument: null,
   activeProjectNodeId: null,
   includeProjectDescendants: false,
+  batchMode: false,
+  selectedDlcIds: new Set(),
+  projectMenuNodeId: null,
+  pickerMode: null,
+  pickerSelectedNodeIds: new Set(),
+  movingNodeId: null,
   showOwned: false,
   showWanted: false,
   showReviewed: false,
@@ -215,7 +221,8 @@ function renderCard(dlc) {
   const currentPrice = window.dlcDisplay.formatDlcPrice(dlc, '¥?');
 
   return `
-    <div class="card" data-id="${dlc.id}" onclick="openDetail('${dlc.id}')">
+    <div class="card${state.selectedDlcIds.has(dlc.id) ? ' batch-selected' : ''}" data-id="${dlc.id}" onclick="handleDlcClick('${dlc.id}')">
+      ${state.batchMode ? `<input class="batch-select-checkbox" type="checkbox" ${state.selectedDlcIds.has(dlc.id) ? 'checked' : ''} aria-label="选择 ${escapeHtml(dlc.title_en)}">` : ''}
       <div class="card-image">
         <img src="${imgUrl}" alt="${escapeHtml(dlc.title_en)}"
              loading="lazy"
@@ -250,8 +257,8 @@ function renderTableRow(dlc) {
   const currentPrice = window.dlcDisplay.formatDlcPrice(dlc, '¥?');
 
   return `
-    <tr data-id="${dlc.id}" onclick="openDetail('${dlc.id}')">
-      <td class="td-title">${escapeHtml(dlc.title_en)}${dlc.title_zh ? `<br><small style="color:var(--text-tertiary)">${escapeHtml(dlc.title_zh)}</small>` : ''}</td>
+    <tr class="${state.selectedDlcIds.has(dlc.id) ? 'batch-selected' : ''}" data-id="${dlc.id}" onclick="handleDlcClick('${dlc.id}')">
+      <td class="td-title">${state.batchMode ? `<input class="batch-select-checkbox" type="checkbox" ${state.selectedDlcIds.has(dlc.id) ? 'checked' : ''}>` : ''}${escapeHtml(dlc.title_en)}${dlc.title_zh ? `<br><small style="color:var(--text-tertiary)">${escapeHtml(dlc.title_zh)}</small>` : ''}</td>
       <td><span class="card-category ${dlc.category || 'other'}" style="font-size:10px">${catLabel}</span></td>
       <td>${starsHtml(dlc.rating)} <small>${dlc.rating.toFixed(1)}</small></td>
       <td>${currentPrice}</td>
@@ -284,6 +291,18 @@ function render() {
   // Update category counts
   renderCategoryFilters();
   renderProjectTree();
+}
+
+function handleDlcClick(id) {
+  if (!state.batchMode) return openDetail(id);
+  state.selectedDlcIds.has(id) ? state.selectedDlcIds.delete(id) : state.selectedDlcIds.add(id);
+  renderBatchToolbar(); render();
+}
+
+function renderBatchToolbar() {
+  $('#batch-toolbar').hidden = !state.batchMode;
+  $('#batch-selected-count').textContent = `已选择 ${state.selectedDlcIds.size} 项`;
+  $('#batch-assign-btn').disabled = state.selectedDlcIds.size === 0;
 }
 
 // ===== Category Filters =====
@@ -384,6 +403,8 @@ function openDetail(id) {
   $('#modal-toggle-wanted').className = 'toggle-btn' + (p.wanted ? ' active wanted' : '');
   $('#modal-toggle-wanted').textContent = p.wanted ? '🔖 想买 (点击取消)' : '🔖 想买';
   $('#modal-notes').value = p.notes || '';
+  const memberships = state.personalDocument.projectCollections.assignments[String(dlc.steam_appid)] || [];
+  $('#modal-project-assign').textContent = `📁 加入项目目录 (${memberships.length})`;
 
   // Personal stars
   const starBtns = $('#modal-personal-stars').querySelectorAll('button');
@@ -403,6 +424,45 @@ function closeDetail() {
   state.currentModalDlc = null;
 }
 
+function openProjectPicker(mode) {
+  state.pickerMode = mode;
+  const collections = state.personalDocument.projectCollections;
+  if (!Object.keys(collections.nodes).length) return showToast('请先在左侧新建项目');
+  if (mode === 'replace' && state.currentModalDlc) state.pickerSelectedNodeIds = new Set(collections.assignments[String(state.currentModalDlc.steam_appid)] || []);
+  else state.pickerSelectedNodeIds = new Set();
+  $('#project-picker-search').value = '';
+  renderProjectPicker();
+  $('#project-picker-overlay').classList.add('active');
+}
+
+function renderProjectPicker() {
+  const tree = window.projectTreeView.buildTree(state.personalDocument.projectCollections, {});
+  $('#project-picker-tree').innerHTML = window.projectTreeView.renderPickerHtml(tree, [...state.pickerSelectedNodeIds], $('#project-picker-search').value);
+  $('#project-picker-count').textContent = `已选择 ${state.pickerSelectedNodeIds.size} 个目录`;
+}
+
+function saveProjectPicker() {
+  const nodeIds = [...state.pickerSelectedNodeIds];
+  let collections = state.personalDocument.projectCollections;
+  if (state.pickerMode === 'replace') collections = window.projectCollections.setAssignments(collections, String(state.currentModalDlc.steam_appid), nodeIds);
+  else {
+    const appIds = [...state.selectedDlcIds].map(id => state.allDlcs.find(d => d.id === id)).filter(Boolean).map(d => String(d.steam_appid));
+    collections = window.projectCollections.addAssignments(collections, appIds, nodeIds);
+  }
+  updateCollections(collections);
+  $('#project-picker-overlay').classList.remove('active');
+  if (state.pickerMode === 'add') { state.batchMode = false; state.selectedDlcIds.clear(); renderBatchToolbar(); render(); }
+  showToast('项目归类已保存');
+}
+
+function openMoveDialog(nodeId) {
+  state.movingNodeId = nodeId;
+  const targets = window.projectTreeView.buildMoveTargets(state.personalDocument.projectCollections, nodeId);
+  $('#move-node-target').innerHTML = targets.map(t => `<option value="${escapeHtmlAttribute(t.id)}">${'—'.repeat(Math.max(0,t.depth-1))} ${escapeHtml(t.name)}</option>`).join('');
+  if (!targets.length) return showToast('没有可移动到的目录');
+  $('#move-node-dialog').showModal();
+}
+
 // ===== Event Handlers =====
 function setupEventHandlers() {
   $('#new-project-btn').addEventListener('click', () => {
@@ -416,20 +476,10 @@ function setupEventHandlers() {
     const menu = event.target.closest('[data-project-menu]');
     if (menu) {
       const nodeId = menu.dataset.projectMenu;
-      const node = state.personalDocument.projectCollections.nodes[nodeId];
-      const action = prompt('操作：输入 1 新建子目录，2 重命名，3 删除');
-      try {
-        if (action === '1') {
-          const name = prompt('请输入子目录名称');
-          if (name) updateCollections(window.projectCollections.createNode(state.personalDocument.projectCollections, { type: 'folder', name, parentId: nodeId }));
-        } else if (action === '2') {
-          const name = prompt('请输入新名称', node.name);
-          if (name) updateCollections(window.projectCollections.renameNode(state.personalDocument.projectCollections, nodeId, name));
-        } else if (action === '3' && confirm(`删除“${node.name}”及其子目录？\n只删除归类关系，DLC 和“已拥有／想买”标记不受影响。`)) {
-          updateCollections(window.projectCollections.deleteNode(state.personalDocument.projectCollections, nodeId));
-          if (!state.personalDocument.projectCollections.nodes[state.activeProjectNodeId]) state.activeProjectNodeId = null;
-        }
-      } catch (error) { showToast(error.message); }
+      state.projectMenuNodeId = nodeId;
+      const popup = $('#project-node-menu'); popup.hidden = false;
+      popup.style.left = `${Math.min(event.clientX, innerWidth - 160)}px`; popup.style.top = `${Math.min(event.clientY, innerHeight - 180)}px`;
+      popup.querySelector('[data-node-action="move"]').hidden = state.personalDocument.projectCollections.nodes[nodeId].type === 'project';
       return;
     }
     const select = event.target.closest('[data-project-select]');
@@ -442,6 +492,35 @@ function setupEventHandlers() {
     state.activeProjectNodeId = state.activeProjectNodeId === nodeId ? null : nodeId;
     updateCollections(collections);
   });
+
+  $('#project-node-menu').addEventListener('click', event => {
+    const action = event.target.dataset.nodeAction; if (!action) return;
+    const id = state.projectMenuNodeId; const node = state.personalDocument.projectCollections.nodes[id]; $('#project-node-menu').hidden = true;
+    try {
+      if (action === 'child') { const name = prompt('请输入子目录名称'); if (name) updateCollections(window.projectCollections.createNode(state.personalDocument.projectCollections, { type:'folder', name, parentId:id })); }
+      if (action === 'rename') { const name = prompt('请输入新名称', node.name); if (name) updateCollections(window.projectCollections.renameNode(state.personalDocument.projectCollections, id, name)); }
+      if (action === 'move') openMoveDialog(id);
+      if (action === 'delete') { state.movingNodeId = id; const descendants = window.projectCollections.getDescendantIds(state.personalDocument.projectCollections,id); $('#delete-node-summary').textContent = `将删除“${node.name}”和 ${descendants.length} 个子目录。DLC、已拥有、想买、评分和备注不会被删除。`; $('#delete-node-dialog').showModal(); }
+    } catch (error) { showToast(error.message); }
+  });
+
+  $('#move-node-confirm').addEventListener('click', event => { event.preventDefault(); try { updateCollections(window.projectCollections.moveNode(state.personalDocument.projectCollections, state.movingNodeId, $('#move-node-target').value, 9999)); $('#move-node-dialog').close(); } catch(error) { showToast(error.message); } });
+  $('#delete-node-confirm').addEventListener('click', event => { event.preventDefault(); updateCollections(window.projectCollections.deleteNode(state.personalDocument.projectCollections, state.movingNodeId)); if (!state.personalDocument.projectCollections.nodes[state.activeProjectNodeId]) state.activeProjectNodeId=null; $('#delete-node-dialog').close(); });
+
+  let draggedNodeId = null;
+  dom.projectTree.addEventListener('dragstart', event => { const row=event.target.closest('[data-node-id]'); if(!row)return; draggedNodeId=row.dataset.nodeId; row.classList.add('dragging'); });
+  dom.projectTree.addEventListener('dragover', event => { if(event.target.closest('[data-node-id]')) event.preventDefault(); });
+  dom.projectTree.addEventListener('drop', event => { event.preventDefault(); const row=event.target.closest('[data-node-id]'); if(!row||!draggedNodeId)return; try { updateCollections(window.projectCollections.moveNode(state.personalDocument.projectCollections,draggedNodeId,row.dataset.nodeId,9999)); } catch(error){ showToast(error.message); } });
+  dom.projectTree.addEventListener('dragend', () => { draggedNodeId=null; dom.projectTree.querySelectorAll('.dragging').forEach(x=>x.classList.remove('dragging')); });
+
+  $('#modal-project-assign').addEventListener('click', () => openProjectPicker('replace'));
+  $('#project-picker-close').addEventListener('click', () => $('#project-picker-overlay').classList.remove('active'));
+  $('#project-picker-search').addEventListener('input', renderProjectPicker);
+  $('#project-picker-tree').addEventListener('change', event => { if(!event.target.matches('input[type="checkbox"]'))return; event.target.checked ? state.pickerSelectedNodeIds.add(event.target.value) : state.pickerSelectedNodeIds.delete(event.target.value); renderProjectPicker(); });
+  $('#project-picker-save').addEventListener('click', saveProjectPicker);
+  $('#batch-mode-btn').addEventListener('click', () => { state.batchMode=true; renderBatchToolbar(); render(); });
+  $('#batch-cancel-btn').addEventListener('click', () => { state.batchMode=false; state.selectedDlcIds.clear(); renderBatchToolbar(); render(); });
+  $('#batch-assign-btn').addEventListener('click', () => openProjectPicker('add'));
 
   $('#include-project-descendants').addEventListener('change', event => {
     state.includeProjectDescendants = event.target.checked;
@@ -681,17 +760,14 @@ function setupEventHandlers() {
       const reader = new FileReader();
       reader.onload = (ev) => {
         try {
-          const data = JSON.parse(ev.target.result);
-          if (data.personalData) {
-            state.personalData = data.personalData;
-            savePersonalData();
-            applyFilters();
-            showToast('数据导入成功！');
-          } else {
-            showToast('文件格式不正确');
-          }
-        } catch {
-          showToast('导入失败，请检查文件格式');
+          const document = window.personalStore.parseImport(ev.target.result);
+          if (!confirm('导入将替换当前个人标记和项目目录，是否继续？')) return;
+          const saved = window.personalStore.save(localStorage, 'rpgmz-dlc-personal', document);
+          if (!saved.ok) throw saved.error;
+          state.personalDocument = document; state.personalData = document.personalData; state.activeProjectNodeId = null;
+          applyFilters(); showToast('数据导入成功！');
+        } catch (error) {
+          showToast(`导入失败：${error.message || '请检查文件格式'}`);
         }
       };
       reader.readAsText(file);
@@ -737,12 +813,7 @@ function updatePriceLabels() {
 
 // ===== Export / Import =====
 function exportData() {
-  const exportObj = {
-    exportDate: new Date().toISOString(),
-    personalData: state.personalData,
-    appVersion: '1.0.0',
-  };
-  const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
+  const blob = new Blob([window.personalStore.serializeExport(state.personalDocument)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
