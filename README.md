@@ -17,10 +17,9 @@
 
 ## 📽️ 宣传片
 
-<!-- TODO: 把 docs/media/promo.mp4 拖进 GitHub 网页编辑器上传，替换成 user-attachments 视频链接后即可内联播放 -->
-<a href="docs/media/promo.mp4">
-  <img src="docs/media/promo-poster.png" alt="RPGMZ DLC 数据库 宣传片 - 点击下载观看（约 30MB）" width="100%">
-</a>
+
+
+
 
 *(点击上方图片下载观看完整宣传片,约 30MB)*
 
