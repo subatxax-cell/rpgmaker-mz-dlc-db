@@ -13,6 +13,8 @@
 
 **当前版本：v1.1.0** · [查看更新记录](CHANGELOG.md)
 
+https://github.com/user-attachments/assets/7a34dbed-b401-46bd-a2da-0cf7ec355a2b
+
 </div>
 
 ---
