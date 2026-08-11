@@ -17,6 +17,9 @@ const state = {
   searchQuery: '',
   fuse: null,
   personalData: {},
+  personalDocument: null,
+  activeProjectNodeId: null,
+  includeProjectDescendants: false,
   showOwned: false,
   showWanted: false,
   showReviewed: false,
@@ -43,18 +46,22 @@ const dom = {
   toast: $('#toast'),
   menuBtn: $('#menu-btn'),
   sidebar: $('#sidebar'),
+  projectTree: $('#project-tree'),
 };
 
 // ===== localStorage =====
 function loadPersonalData() {
-  try {
-    const d = localStorage.getItem('rpgmz-dlc-personal');
-    state.personalData = d ? JSON.parse(d) : {};
-  } catch { state.personalData = {}; }
+  const loaded = window.personalStore.load(localStorage, 'rpgmz-dlc-personal');
+  state.personalDocument = loaded.document;
+  state.personalData = state.personalDocument.personalData;
+  if (loaded.error) setTimeout(() => showToast('个人数据读取失败，已使用安全空数据'), 0);
 }
 
 function savePersonalData() {
-  localStorage.setItem('rpgmz-dlc-personal', JSON.stringify(state.personalData));
+  state.personalDocument.personalData = state.personalData;
+  const result = window.personalStore.save(localStorage, 'rpgmz-dlc-personal', state.personalDocument);
+  if (!result.ok) showToast('保存失败，请导出备份或释放浏览器空间');
+  return result.ok;
 }
 
 function getPersonal(dlcId) {
@@ -138,6 +145,8 @@ function applyFilters() {
     subcategory: state.activeSubcategory,
   });
 
+  result = applyProjectFilter(result);
+
   result = applyNonCategoryFilters(result);
 
   // Fuse supplies candidates only; the selected sort determines their display order.
@@ -145,6 +154,31 @@ function applyFilters() {
 
   state.filteredDlcs = result;
   render();
+}
+
+function applyProjectFilter(dlcs) {
+  if (!state.activeProjectNodeId) return dlcs;
+  const ids = new Set(window.projectCollections.getAssignedAppIds(
+    state.personalDocument.projectCollections,
+    state.activeProjectNodeId,
+    state.includeProjectDescendants,
+  ));
+  return dlcs.filter(dlc => ids.has(String(dlc.steam_appid)));
+}
+
+function renderProjectTree() {
+  const collections = state.personalDocument.projectCollections;
+  const counts = {};
+  Object.values(collections.assignments).forEach(ids => ids.forEach(id => { counts[id] = (counts[id] || 0) + 1; }));
+  const tree = window.projectTreeView.buildTree(collections, counts);
+  dom.projectTree.innerHTML = tree.length
+    ? window.projectTreeView.renderTreeHtml(tree, { activeNodeId: state.activeProjectNodeId })
+    : '<div class="project-tree-empty">尚未创建项目</div>';
+}
+
+function updateCollections(next) {
+  state.personalDocument.projectCollections = next;
+  if (savePersonalData()) { renderProjectTree(); applyFilters(); }
 }
 
 // ===== Rendering =====
@@ -249,6 +283,7 @@ function render() {
 
   // Update category counts
   renderCategoryFilters();
+  renderProjectTree();
 }
 
 // ===== Category Filters =====
@@ -370,6 +405,49 @@ function closeDetail() {
 
 // ===== Event Handlers =====
 function setupEventHandlers() {
+  $('#new-project-btn').addEventListener('click', () => {
+    const name = prompt('请输入项目名称');
+    if (!name) return;
+    try { updateCollections(window.projectCollections.createNode(state.personalDocument.projectCollections, { type: 'project', name, parentId: null })); }
+    catch (error) { showToast(error.message); }
+  });
+
+  dom.projectTree.addEventListener('click', event => {
+    const menu = event.target.closest('[data-project-menu]');
+    if (menu) {
+      const nodeId = menu.dataset.projectMenu;
+      const node = state.personalDocument.projectCollections.nodes[nodeId];
+      const action = prompt('操作：输入 1 新建子目录，2 重命名，3 删除');
+      try {
+        if (action === '1') {
+          const name = prompt('请输入子目录名称');
+          if (name) updateCollections(window.projectCollections.createNode(state.personalDocument.projectCollections, { type: 'folder', name, parentId: nodeId }));
+        } else if (action === '2') {
+          const name = prompt('请输入新名称', node.name);
+          if (name) updateCollections(window.projectCollections.renameNode(state.personalDocument.projectCollections, nodeId, name));
+        } else if (action === '3' && confirm(`删除“${node.name}”及其子目录？\n只删除归类关系，DLC 和“已拥有／想买”标记不受影响。`)) {
+          updateCollections(window.projectCollections.deleteNode(state.personalDocument.projectCollections, nodeId));
+          if (!state.personalDocument.projectCollections.nodes[state.activeProjectNodeId]) state.activeProjectNodeId = null;
+        }
+      } catch (error) { showToast(error.message); }
+      return;
+    }
+    const select = event.target.closest('[data-project-select]');
+    if (!select) return;
+    const nodeId = select.dataset.projectSelect;
+    const collections = JSON.parse(JSON.stringify(state.personalDocument.projectCollections));
+    const expanded = new Set(collections.expandedNodeIds || []);
+    expanded.has(nodeId) ? expanded.delete(nodeId) : expanded.add(nodeId);
+    collections.expandedNodeIds = [...expanded];
+    state.activeProjectNodeId = state.activeProjectNodeId === nodeId ? null : nodeId;
+    updateCollections(collections);
+  });
+
+  $('#include-project-descendants').addEventListener('change', event => {
+    state.includeProjectDescendants = event.target.checked;
+    applyFilters();
+  });
+
   // Category navigation uses one delegated listener, so repeated renders never
   // accumulate stale handlers on replaced sidebar items.
   dom.categoryFilters.addEventListener('click', (event) => {

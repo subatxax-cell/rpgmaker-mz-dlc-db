@@ -73,3 +73,19 @@ test('filter and display scripts both load before the application', () => {
   assert.ok(filtersScript < appScript, 'js/dlc-filters.js must load before js/app.js');
   assert.ok(displayScript < appScript, 'js/dlc-display.js must load before js/app.js');
 });
+
+test('project collection sidebar loads its dependencies and composes with existing filters', () => {
+  for (const id of ['project-collections', 'new-project-btn', 'project-tree', 'include-project-descendants']) {
+    assert.match(index, new RegExp(`id="${id}"`), `${id} must exist`);
+  }
+  const modelScript = index.indexOf('src="js/project-collections.js"');
+  const storeScript = index.indexOf('src="js/personal-store.js"');
+  const treeScript = index.indexOf('src="js/project-tree-view.js"');
+  const appScript = index.indexOf('src="js/app.js"');
+  assert.ok(modelScript < storeScript && storeScript < treeScript && treeScript < appScript);
+  assert.match(app, /getAssignedAppIds/);
+  assert.match(app, /steam_appid/);
+  assert.match(app, /includeProjectDescendants/);
+  assert.match(app, /window\.dlcFilters\.filterByCategory/);
+  assert.match(app, /window\.sortDlcs/);
+});
