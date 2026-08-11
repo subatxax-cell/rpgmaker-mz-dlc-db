@@ -228,6 +228,7 @@
   <button data-node-action="child">新建子目录</button><button data-node-action="rename">重命名</button>
   <button data-node-action="move">移动到…</button><button data-node-action="delete">删除</button>
 </div>
+<dialog class="project-dialog" id="node-name-dialog"><form method="dialog"><h3 id="node-name-title">新建项目</h3><input id="node-name-input" maxlength="80"><div class="dialog-actions"><button value="cancel">取消</button><button id="node-name-confirm" value="default">确定</button></div></form></dialog>
 <dialog class="project-dialog" id="move-node-dialog"><form method="dialog"><h3>移动目录</h3><select id="move-node-target"></select><div class="dialog-actions"><button value="cancel">取消</button><button id="move-node-confirm" value="default">移动</button></div></form></dialog>
 <dialog class="project-dialog" id="delete-node-dialog"><form method="dialog"><h3>确认删除</h3><p id="delete-node-summary"></p><div class="dialog-actions"><button value="cancel">取消</button><button id="delete-node-confirm" value="default">删除</button></div></form></dialog>
 <div class="modal-overlay project-picker-overlay" id="project-picker-overlay">

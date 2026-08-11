@@ -26,6 +26,7 @@ const state = {
   pickerMode: null,
   pickerSelectedNodeIds: new Set(),
   movingNodeId: null,
+  nodeNameAction: null,
   showOwned: false,
   showWanted: false,
   showReviewed: false,
@@ -450,6 +451,7 @@ function saveProjectPicker() {
     collections = window.projectCollections.addAssignments(collections, appIds, nodeIds);
   }
   updateCollections(collections);
+  if (state.pickerMode === 'replace' && state.currentModalDlc) $('#modal-project-assign').textContent = `📁 加入项目目录 (${nodeIds.length})`;
   $('#project-picker-overlay').classList.remove('active');
   if (state.pickerMode === 'add') { state.batchMode = false; state.selectedDlcIds.clear(); renderBatchToolbar(); render(); }
   showToast('项目归类已保存');
@@ -463,13 +465,18 @@ function openMoveDialog(nodeId) {
   $('#move-node-dialog').showModal();
 }
 
+function openNodeNameDialog(action, nodeId = null) {
+  state.nodeNameAction = { action, nodeId };
+  const node = nodeId ? state.personalDocument.projectCollections.nodes[nodeId] : null;
+  $('#node-name-title').textContent = action === 'project' ? '新建项目' : action === 'child' ? '新建子目录' : '重命名';
+  $('#node-name-input').value = action === 'rename' ? node.name : '';
+  $('#node-name-dialog').showModal(); $('#node-name-input').focus();
+}
+
 // ===== Event Handlers =====
 function setupEventHandlers() {
   $('#new-project-btn').addEventListener('click', () => {
-    const name = prompt('请输入项目名称');
-    if (!name) return;
-    try { updateCollections(window.projectCollections.createNode(state.personalDocument.projectCollections, { type: 'project', name, parentId: null })); }
-    catch (error) { showToast(error.message); }
+    openNodeNameDialog('project');
   });
 
   dom.projectTree.addEventListener('click', event => {
@@ -497,11 +504,22 @@ function setupEventHandlers() {
     const action = event.target.dataset.nodeAction; if (!action) return;
     const id = state.projectMenuNodeId; const node = state.personalDocument.projectCollections.nodes[id]; $('#project-node-menu').hidden = true;
     try {
-      if (action === 'child') { const name = prompt('请输入子目录名称'); if (name) updateCollections(window.projectCollections.createNode(state.personalDocument.projectCollections, { type:'folder', name, parentId:id })); }
-      if (action === 'rename') { const name = prompt('请输入新名称', node.name); if (name) updateCollections(window.projectCollections.renameNode(state.personalDocument.projectCollections, id, name)); }
+      if (action === 'child') openNodeNameDialog('child', id);
+      if (action === 'rename') openNodeNameDialog('rename', id);
       if (action === 'move') openMoveDialog(id);
       if (action === 'delete') { state.movingNodeId = id; const descendants = window.projectCollections.getDescendantIds(state.personalDocument.projectCollections,id); $('#delete-node-summary').textContent = `将删除“${node.name}”和 ${descendants.length} 个子目录。DLC、已拥有、想买、评分和备注不会被删除。`; $('#delete-node-dialog').showModal(); }
     } catch (error) { showToast(error.message); }
+  });
+
+  $('#node-name-confirm').addEventListener('click', event => {
+    event.preventDefault(); const name = $('#node-name-input').value; const pending = state.nodeNameAction;
+    try {
+      let next;
+      if (pending.action === 'project') next = window.projectCollections.createNode(state.personalDocument.projectCollections,{type:'project',name,parentId:null});
+      else if (pending.action === 'child') { next = window.projectCollections.createNode(state.personalDocument.projectCollections,{type:'folder',name,parentId:pending.nodeId}); next.expandedNodeIds = [...new Set([...(next.expandedNodeIds || []), pending.nodeId])]; }
+      else next = window.projectCollections.renameNode(state.personalDocument.projectCollections,pending.nodeId,name);
+      updateCollections(next); $('#node-name-dialog').close();
+    } catch(error) { showToast(error.message); }
   });
 
   $('#move-node-confirm').addEventListener('click', event => { event.preventDefault(); try { updateCollections(window.projectCollections.moveNode(state.personalDocument.projectCollections, state.movingNodeId, $('#move-node-target').value, 9999)); $('#move-node-dialog').close(); } catch(error) { showToast(error.message); } });

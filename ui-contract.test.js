@@ -99,4 +99,5 @@ test('project management provides menus, move controls, detail assignment, and b
   assert.match(app, /addAssignments/);
   assert.match(app, /setAssignments/);
   assert.match(app, /batch-select-checkbox/);
+  assert.doesNotMatch(app, /\bprompt\s*\(/);
 });
