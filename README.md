@@ -11,9 +11,7 @@
 [🌐 在线体验](https://subatxax-cell.github.io/rpgmaker-mz-dlc-db/) ·
 [📦 查看源码](https://github.com/subatxax-cell/rpgmaker-mz-dlc-db)
 
-**当前版本：v1.1.0** · [查看更新记录](CHANGELOG.md)
-
-https://github.com/user-attachments/assets/7a34dbed-b401-46bd-a2da-0cf7ec355a2b
+**当前版本：v1.1.1** · [查看更新记录](CHANGELOG.md)
 
 </div>
 
@@ -21,15 +19,23 @@ https://github.com/user-attachments/assets/7a34dbed-b401-46bd-a2da-0cf7ec355a2b
 
 ## 📽️ 宣传片
 
-
-
-
-
-*(点击上方图片下载观看完整宣传片,约 30MB)*
+<!-- 宣传片：在 GitHub 网页编辑器中拖拽上传后，把视频链接放在这里。 -->
 
 ## 📁 项目收藏夹
 
-左侧可新建游戏项目和无限层级子目录，并从 DLC 详情页或批量选择模式把素材加入多个目录。项目数据仅保存在当前浏览器；导出备份会同时包含个人标记、项目树和归类关系，也兼容旧版个人数据备份。删除项目或目录只会移除归类关系，不会删除 DLC 或“已拥有／想买”、评分和备注。
+左侧可新建多个游戏项目，并建立“序章／第一章／第二章”等无限层级子目录。同一 DLC 可以归入多个项目和目录，目录支持展开、重命名、拖拽及“移动到……”。
+
+<img src="docs/media/project-tree.png" width="320" alt="项目收藏夹与无限层级章节目录">
+
+在 DLC 详情中可以搜索并同时勾选多个目录；项目筛选还能和搜索、官方分类、价格、推荐度及个人标记组合使用。
+
+<img src="docs/media/project-picker.png" width="100%" alt="DLC 详情页多目录归类选择器">
+
+卡片和表格都提供批量选择模式，一次即可把多款 DLC 加入目标目录，已有归类不会被覆盖。
+
+<img src="docs/media/batch-assign.png" width="100%" alt="表格视图批量选择与项目归类">
+
+项目数据仅保存在当前浏览器。导出备份会包含个人标记、项目树和归类关系，并兼容旧版备份；删除项目或目录只移除归类关系，不会删除 DLC，也不会影响“已拥有／想买”、评分或备注。
 
 ---
 
@@ -41,32 +47,28 @@ https://github.com/user-attachments/assets/7a34dbed-b401-46bd-a2da-0cf7ec355a2b
 
 ## ✨ 功能一览
 
-### 1. 全量聚合浏览,明暗双主题
+### 1. 全量聚合浏览，明暗双主题
 
-969 款 DLC 一屏卡片墙,支持随时切换明/暗主题。
+969 款 DLC 集中浏览，默认按推荐度高优先显示，并支持明暗主题切换。
 
 <img src="docs/media/hero-light.png" width="100%" alt="卡片网格 - 浅色模式">
 <img src="docs/media/hero-dark.png" width="100%" alt="卡片网格 - 深色模式">
 
-### 2. 多维度筛选
+### 2. 多维筛选与全文搜索
 
-按分类(图块素材/角色素材/音乐包/插件工具/战斗角色/其他)、推荐度星级、价格区间、个人标记(已拥有/想买/已评分)组合筛选。
+按官方分类、Other 子分类、推荐度、价格区间和个人标记组合筛选；标题、双语描述与标签均可即时搜索。
 
 <img src="docs/media/filters-sidebar.png" width="320" alt="侧边栏筛选">
 
-### 3. 全文搜索
-
-标题、描述、标签都能搜,输入即时过滤。
-
 <img src="docs/media/search-filter.png" width="100%" alt="搜索筛选">
 
-### 4. 卡片 / 表格双视图
+### 3. 卡片／表格双视图
 
-信息密度不够?一键切到表格视图,批量对比价格、好评率、主题。
+一键切换卡片和表格，快速比较价格、好评率、主题与推荐度，也可直接进入批量选择。
 
 <img src="docs/media/table-view.png" width="100%" alt="表格视图">
 
-### 5. 详情弹窗:一眼看懂值不值
+### 4. 详情弹窗：一眼看懂值不值
 
 综合推荐分、Steam 好评率与评价数、国区现价与历史最低价、主题风格、子分类,全部摆在一起对比。
 
@@ -76,25 +78,25 @@ https://github.com/user-attachments/assets/7a34dbed-b401-46bd-a2da-0cf7ec355a2b
 
 <img src="docs/media/detail-score-source.png" width="100%" alt="推荐分来源说明">
 
-### 6. 中英双语详情
+### 5. 中英双语详情
 
 每款 DLC 的介绍同时提供英文原文和中文翻译,不用来回切 Steam 商店语言。
 
 <img src="docs/media/detail-bilingual.png" width="100%" alt="中英双语详情">
 
-### 7. 标签系统
+### 6. 标签系统
 
 每款 DLC 都打好了主题/风格标签(奇幻、像素、复古、JRPG……),点开详情就能看到,方便按调性找素材。全项目一共用到了 **410 个标签**,完整列表见下方。
 
 <img src="docs/media/detail-tags.png" width="100%" alt="标签展示">
 
-### 8. 个人收藏标记
+### 7. 个人标记与本地备份
 
-自己标记"已拥有""想买",打个人评分、写备注——数据存在本地浏览器里,只属于你自己。
+标记“已拥有”“想买”、个人评分和备注；版本化导入导出可同时备份这些标记与项目目录。
 
 <img src="docs/media/detail-personal.png" width="100%" alt="个人标记">
 
-### 9. 一键跳转 Steam 原页面
+### 8. 一键跳转 Steam 原页面
 
 看中了就直接跳转官方商店页面购买,不用自己搜。
 

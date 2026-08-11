@@ -11,18 +11,31 @@ English | [简体中文](README.md)
 [🌐 Live Demo](https://subatxax-cell.github.io/rpgmaker-mz-dlc-db/) ·
 [📦 Source](https://github.com/subatxax-cell/rpgmaker-mz-dlc-db)
 
+**Current version: v1.1.1** · [Changelog](CHANGELOG.md)
+
 </div>
 
 ---
 
 ## 📽️ Promo Video
 
-<!-- TODO: drag docs/media/promo.mp4 into the GitHub web editor to get a user-attachments video URL for inline playback -->
-<a href="docs/media/promo.mp4">
-  <img src="docs/media/promo-poster.png" alt="RPGMZ DLC Database promo - click to download and watch (~30MB)" width="100%">
-</a>
+<!-- Promo video: drag the finished video into the GitHub web editor and place its link here. -->
 
-*(Click the image above to download and watch the full promo video, ~30MB)*
+## 📁 Project Collections
+
+Create multiple game projects in the sidebar, then organize them into unlimited nested folders such as Prologue, Chapter One, and Chapter Two. A DLC can belong to several projects or folders at once, and folders support expansion, renaming, drag-and-drop, and an accessible “Move to…” action.
+
+<img src="docs/media/project-tree.png" width="320" alt="Project collection with nested chapter folders">
+
+The DLC detail view includes a searchable multi-folder picker. Project filters continue to combine with search, official categories, price, recommendation score, and personal marks.
+
+<img src="docs/media/project-picker.png" width="100%" alt="Multi-folder project picker in the DLC detail view">
+
+Card and table views both support batch selection, so several DLCs can be added to target folders in one operation without replacing their existing memberships.
+
+<img src="docs/media/batch-assign.png" width="100%" alt="Batch selection and project assignment in table view">
+
+Project data stays in the current browser. Exports include personal marks, the project tree, and DLC memberships while remaining compatible with older backups. Deleting a project or folder removes only its organization links—it never deletes a DLC or changes owned, wishlist, rating, or note data.
 
 ---
 
@@ -36,30 +49,26 @@ So I built this: a single page that aggregates all 969 RPG Maker MZ DLCs, filter
 
 ### 1. Full catalog browsing, light & dark themes
 
-All 969 DLCs in one card wall, with instant light/dark theme switching.
+Browse all 969 DLCs in one place, ranked by highest recommendation score by default, with instant light/dark theme switching.
 
 <img src="docs/media/hero-light.png" width="100%" alt="Card grid - light mode">
 <img src="docs/media/hero-dark.png" width="100%" alt="Card grid - dark mode">
 
-### 2. Multi-dimensional filtering
+### 2. Combined filters and full-text search
 
-Filter by category (tilesets / character assets / music packs / plugins / battler assets / other), recommendation-score stars, price range, and personal marks (owned / wishlist / rated) — all combinable.
+Combine official categories, Other subcategories, recommendation score, price range, and personal marks. Search titles, bilingual descriptions, and tags as you type.
 
 <img src="docs/media/filters-sidebar.png" width="320" alt="Sidebar filters">
 
-### 3. Full-text search
-
-Searches title, description, and tags, filtering as you type.
-
 <img src="docs/media/search-filter.png" width="100%" alt="Search + filter">
 
-### 4. Card / table dual view
+### 3. Card / table dual view
 
-Need higher information density? Switch to table view to compare price, review rate, and theme side by side.
+Switch views to compare price, review rate, theme, and recommendation score, or enter batch-selection mode directly.
 
 <img src="docs/media/table-view.png" width="100%" alt="Table view">
 
-### 5. Detail modal — is it worth it, at a glance
+### 4. Detail modal — is it worth it, at a glance
 
 Recommendation score, Steam review rate & count, current CN-region price vs. historical low, theme, and sub-category — all laid out for comparison.
 
@@ -69,25 +78,25 @@ The scoring formula isn't a black box either — the breakdown between manual cu
 
 <img src="docs/media/detail-score-source.png" width="100%" alt="Score breakdown">
 
-### 6. Bilingual descriptions
+### 5. Bilingual descriptions
 
 Every DLC's description ships in both original English and Chinese translation, no need to flip the Steam store's language setting back and forth.
 
 <img src="docs/media/detail-bilingual.png" width="100%" alt="Bilingual description">
 
-### 7. Tag system
+### 6. Tag system
 
 Every DLC is tagged by theme/style (fantasy, pixel art, retro, JRPG…), visible right in the detail view — handy for browsing by vibe. The whole catalog uses **410 distinct tags**, full list below.
 
 <img src="docs/media/detail-tags.png" width="100%" alt="Tags">
 
-### 8. Personal collection marking
+### 7. Personal marks and local backups
 
-Mark items as "owned" or "wishlist", give your own star rating, jot a note — all stored locally in your own browser, never uploaded anywhere.
+Mark items as owned or wishlist, add a personal rating and notes, then export those marks together with project folders in one versioned backup.
 
 <img src="docs/media/detail-personal.png" width="100%" alt="Personal marking">
 
-### 9. One click to the original Steam page
+### 8. One click to the original Steam page
 
 Found something you like? Jump straight to the official store listing to buy it.
 
